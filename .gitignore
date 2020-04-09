@@ -1,0 +1,8 @@
+.idea/
+__pycache__/
+*.pyc/
+*.pyc
+checkpoints/
+checkpoints_ctdet/
+*.onnx
+*.tensorcache
