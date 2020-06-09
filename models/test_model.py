@@ -5,9 +5,9 @@ from config import opts
 import torch
 
 opt = opts.opts()
-opt.from_file('./config/configs/erfnet.py')
+opt.from_file('./config/configs/efficientdet.py')
 
 net = create_model(opt)
-input = torch.randn(5,3,256,512)
-output = net(input)
-print(output.size())
+input = torch.randn(4,3,512,512)
+features, regression, classification, anchors = net(input)
+print(regression.size(), classification.size(), anchors.size())

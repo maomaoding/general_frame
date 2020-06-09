@@ -1,10 +1,12 @@
 import time,torch,os
+import datetime
 from utils.data_parallel import DataParallel
 from utils.utils import AverageMeter
 from progress.bar import Bar
 from models import create_model
-from models.utils import load_model
-from utils.vis_visualizer import Visualizer
+from models.utils import load_model, init_weights
+from tensorboardX import SummaryWriter
+from utils.visualizer import Visualizer
 
 class ModelWithLoss(torch.nn.Module):
 	def __init__(self, model, loss):
@@ -12,24 +14,27 @@ class ModelWithLoss(torch.nn.Module):
 		self.model = model
 		self.loss = loss
 	def forward(self, batch):
-		outputs = self.model(batch['input'])
+		outputs = self.model(batch['img'])
 		loss, loss_stats = self.loss(outputs, batch)
 		return outputs, loss, loss_stats
 
 class BaseTrainer:
 	def __init__(self, opt):
-		self.vis = Visualizer(opt.arch, port=8097)
 		self.opt = opt
+		self.writer = SummaryWriter('logs' + f'/{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}/')
+		self.vis = Visualizer(opt)
 		self.loss_stats, self.loss = self._get_losses(opt)
 		self.model = create_model(opt)
-		params=self._set_optimizer_param(self.model)
 
-		optim_arg = ['{}={}'.format(k,v) for k,v in opt.optimizer.items() if k != 'name']
-		exec('self.optimizer=torch.optim.{}(params, {})'.format(opt.optimizer['name'], ','.join(optim_arg)))
+		self.optimizer = self.gen_optimizer()
 
 		if opt.model_path != '':
 			self.model = load_model(self.model, opt.model_path, None, opt.resume)
 			# self.model.load_state_dict(torch.load(opt.model_path), strict=False)
+		else:
+			print('[Info] initializing weights...')
+			init_weights(self.model)
+
 		self.model_with_loss = ModelWithLoss(self.model, self.loss)
 		self.set_device(opt.gpus, opt.chunk_sizes, opt.device)
 
@@ -65,7 +70,7 @@ class BaseTrainer:
 		data_time, batch_time = AverageMeter(), AverageMeter()
 		avg_loss_stats = {l: AverageMeter() for l in self.loss_stats}
 		num_iters = len(data_loader)
-		bar = Bar('{}/{}'.format(opt.task, "centernet"), max=num_iters)
+		bar = Bar('{}/{}'.format(opt.task, "effdet"), max=num_iters)
 		end = time.time()
 		for iter_id, batch in enumerate(data_loader):
 			data_time.update(time.time() - end)
@@ -73,7 +78,7 @@ class BaseTrainer:
 				if k != 'gt':
 					batch[k] = batch[k].to(device=opt.device, non_blocking=True)
 			output, loss, loss_stats = model_with_loss(batch)
-			loss = loss.mean()
+			# loss = loss.mean()
 			if phase == 'train':
 				self.optimizer.zero_grad()
 				loss.backward()
@@ -86,29 +91,31 @@ class BaseTrainer:
 				total=bar.elapsed_td)#, eta=bar.eta_td
 			for l in avg_loss_stats:
 				avg_loss_stats[l].update(
-					loss_stats[l].mean().item(), batch['input'].size(0))
+					loss_stats[l].mean().item(), batch['img'].size(0))
 				Bar.suffix += '|{} {:.4f} '.format(l, avg_loss_stats[l].avg)
 
 			Bar.suffix = Bar.suffix + '|Data {dt.val:.3f}s({dt.avg:.3f}s) ' \
 									'|Net {bt.avg:.3f}s'.format(dt=data_time, bt=batch_time)
 			if opt.print_iter > 0:
 				if iter_id % opt.print_iter == 0:
-					print('{}/{}| {}'.format(opt.task, "centernet", Bar.suffix))
+					print('{}/{}| {}'.format(opt.task, "effdet", Bar.suffix))
 			else:
 				bar.next()
+
+			self.writer.add_scalar('Loss', avg_loss_stats['loss'].avg, (epoch-1)*num_iters+iter_id)
+			self.writer.add_scalar('reg_loss', avg_loss_stats['reg_loss'].avg, (epoch-1)*num_iters+iter_id)
+			self.writer.add_scalar('cls_loss', avg_loss_stats['cls_loss'].avg, (epoch-1)*num_iters+iter_id)
+
 			if opt.visual > 0:
 				if opt.print_iter > 0:
 					if iter_id % opt.print_iter == 0:
-						self.visual(self.vis, batch, output, avg_loss_stats)
+						self.visual(self.vis, batch, output)
 			del output, loss, loss_stats
 
 		bar.finish()
 		ret = {k: v.avg for k, v in avg_loss_stats.items()}
 		ret['time'] = bar.elapsed_td.total_seconds() / 60.
 		return ret
-
-	def _set_optimizer_param(self, net):
-		raise NotImplementedError
 
 	def visual(self, batch, output):
 		raise NotImplementedError
@@ -121,3 +128,6 @@ class BaseTrainer:
 
 	def train(self, epoch, data_loader):
 		return self.run_epoch('train', epoch, data_loader)
+
+	def gen_optimizer(self):
+		raise NotImplementedError

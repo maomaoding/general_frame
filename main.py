@@ -14,7 +14,7 @@ def test_imgfolder():
 	detector = get_detector(opt)
 	detector.pause=False
 
-	folder_path = '/datastore/data/dataset/TT100K/data/test'
+	folder_path = '/home/dingyaohua/Downloads/test'
 	for file in os.listdir(folder_path):
 		img = cv2.imread(os.path.join(folder_path, file))
 		ret = detector.run(img)
@@ -50,8 +50,8 @@ def val():
 
 def train():
 	opt = opts()
-	opt.from_file('./config/configs/unetpp.py')
-	opt.device = torch.device('cuda:1' if opt.gpus[0] >= 0 else 'cpu')
+	opt.from_file('./config/configs/efficientdet.py')
+	opt.device = torch.device('cuda:0' if opt.gpus[0] >= 0 else 'cpu')
 
 	print('Setting up data...')
 	dataset=get_dataset(opt,"train")
@@ -61,7 +61,8 @@ def train():
 		shuffle=True,
 		num_workers=opt.num_workers,
 		pin_memory=True,
-		drop_last=True
+		drop_last=True,
+		collate_fn=dataset.collate_fn if 'collate_fn' in dir(dataset) else None,
 	)
 	# val_loader = torch.utils.data.DataLoader(
 	# 	get_dataset(opt,"val"),
@@ -79,7 +80,7 @@ def train():
 	best = 1e10
 	start_epoch = 0
 
-	scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.5)
+	scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2000, gamma=0.5)
 
 	for epoch in range(start_epoch + 1, opt.num_epochs + 1):
 		log_dict_train = trainer.train(epoch, train_loader)
@@ -93,11 +94,12 @@ def train():
 		# 			   epoch, model, optimizer)
 		if log_dict_train["loss"] < best:
 			best = log_dict_train["loss"]
-			save_model(os.path.join(opt.save_dir, 'model_{}best7cls.pth'.format(opt.dataset)),
+			save_model(os.path.join(opt.save_dir, 'model_{}best.pth'.format(opt.dataset)),
 					   epoch, model, optimizer)
 
 		scheduler.step()
 		print('Drop LR to', scheduler.optimizer.param_groups[-1]['lr'])
+	trainer.writer.close()
 
 if __name__ == '__main__':
 	fire.Fire()

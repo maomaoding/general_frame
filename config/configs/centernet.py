@@ -1,7 +1,7 @@
 model=dict(
 	task='centernet',
 	arch="dla34",
-	model_path = "./checkpoints/model_TT100Kbest.pth",
+	model_path = "./checkpoints/model_junctionsbest7cls.pth",
 	head_conv=256,#conv layer channels for output head 0 for no conv layer -1 for default setting:256 for dla
 	down_ratio=4,
 	reg_offset=True,
@@ -14,12 +14,12 @@ model=dict(
 	)
 
 dataset=dict(
-	data_dir="/datastore/data/dataset",
-	dataset="TT100K",  #bdd100k  TT100K
+	data_dir="/home/dingyaohua/datasets",
+	dataset="junctions",
 	keep_res=False, #保持分辨率
 	mean = [0.40789654, 0.44719302, 0.47026115],
 	std = [0.28863828, 0.27408164, 0.27809835],
-	num_classes=1,
+	num_classes=29,
 	#augment
 	shift_scale_prob=0.7,
 	shift_range = 0.1,  # 图像增强位移范围
@@ -29,12 +29,18 @@ dataset=dict(
 	pad=31, #有上采样的层就需要保证输入大小能被32整除，input_res=1时计算使用
 	input_res=-1, #-1：数据集默认值，会被input_h和input_w覆盖
 	input_h=512, #input height. -1 for default from dataset
-	input_w=720, #input width. -1 for default from dataset
+	input_w=512, #input width. -1 for default from dataset
 	max_objs = 128,#max number of output objects
 	nms=False,
 
-	class_name=[
-			'traffic sign', ]
+	class_name=['corner_right_bottom', 'corner_left_bottom', 'corner_left_top', 'corner_right_top',
+				'cross_top', 'cross_right', 'cross_bottom', 'cross_left', 'cross_all',
+				'rectangle_top', 'rectangle_right', 'rectangle_bottom', 'rectangle_left',
+				'door_top', 'door_right', 'door_bottom', 'door_left',
+				'horizontal_sliding_door', 'vertical_sliding_door',
+				'double_door_top', 'double_door_right', 'double_door_bottom', 'double_door_left',
+				'horizontal_window', 'vertical_window',
+				'bay_window_top', 'bay_window_right', 'bay_window_bottom', 'bay_window_left']
 	)
 
 heads = {'hm': dataset['num_classes'],
@@ -54,7 +60,7 @@ train_cfg=dict(
 	off_weight=1,
 	wh_weight=0.1,
 	#train
-	batch_size=8,
+	batch_size=4,
 	num_iters=-1,# 'default: #samples / batch_size.'
 	optimizer={'name': 'Adam', 'weight_decay': 5e-5},
 	)
@@ -64,13 +70,6 @@ test_cfg=dict(
 	test_scales=[1], #multi scale test augmentation
 	val_filepath='/datastore/data/dataset/TT100K/data/test',
 	)
-
-data_augment = [{'name': 'RandomCrop', 'random_ratio': 0.5, 'shift': 0.1},
-				{'name': 'RandomGasussBlur', 'random_ratio': 0.3},
-				{'name': 'RandomContrastBright', 'random_ratio': 0.3},
-				{'name': 'RandomNoise', 'random_ratio': 0.3},
-				{'name': 'RandomFlip', 'random_ratio': 0.5},
-				{'name': 'Normalize', 'mean': dataset['mean'], 'std': dataset['std']}]
 
 vis_thresh=0.3
 visual=True

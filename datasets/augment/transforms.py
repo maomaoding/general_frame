@@ -5,6 +5,8 @@ from __future__ import print_function
 
 import numpy as np
 import cv2,os
+import sys
+sys.path.append('../../')
 from datasets.augment.image import get_affine_transform,affine_transform
 def _get_border( border, size):
 	i = 1
@@ -15,25 +17,31 @@ def _get_border( border, size):
 #RandomCrop和RandomShiftScale只可用一个，RandomNoise只能在RandomCrop（RandomShiftScale）和RandomGasussBlur之后使用
 #输入的bbox为一个二维list，第一维是目标个数，第二维是[x1,y1,x2,y2]
 class DataAugment(object):
-	def __init__(self, aug_list):
+	def __init__(self, aug_list, class_name):
 		self.aug_list = aug_list
-	def __call__(self, image, bboxes=None):
-		if bboxes is not None and len(bboxes)>0:
-			for aug in self.aug_list:
-				bboxes_np=np.array(bboxes)[:,:4]
-				extra_label=np.array(bboxes)[:,4:]
-				image=aug(image,bboxes_np)
-				bboxes_np=np.hstack([bboxes_np,extra_label])
-				bboxes=bboxes_np.tolist()
-			return image,bboxes
-		elif len(bboxes)==0:
-			for aug in self.aug_list:
-				image=aug(image)
-			return image, bboxes
-		else:
-			for aug in self.aug_list:
-				image=aug(image)
-			return image
+		self.class_name = class_name
+	def __call__(self, image, anns=None):
+		# if bboxes is not None and len(bboxes)>0:
+		# 	for aug in self.aug_list:
+		# 		bboxes_np=np.array(bboxes)[:,:4]
+		# 		extra_label=np.array(bboxes)[:,4:]
+		# 		image=aug(image,bboxes_np)
+		# 		bboxes_np=np.hstack([bboxes_np,extra_label])
+		# 		bboxes=bboxes_np.tolist()
+		# 	return image,bboxes
+		# elif len(bboxes)==0:
+		# 	for aug in self.aug_list:
+		# 		image=aug(image)
+		# 	return image, bboxes
+		# else:
+		# 	for aug in self.aug_list:
+		# 		image=aug(image)
+		# 	return image
+		anns = np.array(anns)
+		for aug in self.aug_list:
+			image, anns = aug(image, anns, self.class_name)
+		anns = anns.tolist()
+		return image, anns
 
 class DataAugment_seg(object):
 	def __init__(self, aug_list):
@@ -47,54 +55,69 @@ class DataAugment_seg(object):
 class RandomContrastBright(object):
 	def __init__(self,random_ratio):
 		self.random_ratio=random_ratio
-	def __call__(self, image, bboxes=None):
+	def __call__(self, image, anns=None, class_name=None):
 		if np.random.random()<self.random_ratio:
 			alpha=np.random.random()+0.3
 			beta=int((np.random.random()-0.5)*255*0.3)
 			blank = np.zeros(image.shape, image.dtype)
 			image = cv2.addWeighted(image, alpha, blank, 1 - alpha, beta)
 			image=np.clip(image,0,255)
-		return image
+		return image, anns
 
 class RandomFlip(object):
 	def __init__(self,random_ratio):
 		self.random_ratio=random_ratio
-	def __call__(self, image, bboxes=[]):
+	def __call__(self, image, anns=None, class_name=None):
 		if np.random.random()<self.random_ratio:
-			image = image[:, ::-1, :]
-			height,width=image.shape[:2]
-			if bboxes == []:
-				return image.copy()
-			bboxes[:,[0, 2]] = width - bboxes[:,[2, 0]] - 1
-		return image.copy()
+			horizontal_or_vertical = np.random.random()
+			height, width = image.shape[:2]
+			if horizontal_or_vertical < 0.5: #horizontal
+				image = image[:, ::-1, :]
+				anns[:, [0, 2]] = width - anns[:, [2, 0]] - 1
+				for i in range(len(anns)):
+					old_classname = class_name[anns[i, 4]]
+					if old_classname.find('right') != -1:
+						anns[i, 4] = class_name.index(old_classname.replace('right', 'left'))
+					elif old_classname.find('left') != -1:
+						anns[i, 4] = class_name.index(old_classname.replace('left', 'right'))
+			else:							 #vertical
+				image = image[::-1, :, :]
+				anns[:, [1, 3]] = height - anns[:, [3, 1]] - 1
+				for i in range(len(anns)):
+					old_classname = class_name[anns[i, 4]]
+					if old_classname.find('top') != -1:
+						anns[i, 4] = class_name.index(old_classname.replace('top', 'bottom'))
+					elif old_classname.find('bottom') != -1:
+						anns[i, 4] = class_name.index(old_classname.replace('bottom', 'top'))
+		return image, anns
 
-class RandomGasussBlur(object):
+class RandomGaussBlur(object):
 	def __init__(self,random_ratio):
 		self.random_ratio=random_ratio
-	def __call__(self, image, bboxes=None):
+	def __call__(self, image, anns=None, class_name=None):
 		if np.random.random()<self.random_ratio:
 			kernel_size = (np.random.randint(1,3)*2+1, np.random.randint(1,3)*2+1)
 			sigma = 0.8
 			image = cv2.GaussianBlur(image, kernel_size, sigma)
-		return image
+		return image, anns
 
 class RandomNoise(object):
 	def __init__(self,random_ratio):
 		self.random_ratio=random_ratio
-	def __call__(self, image, bboxes=None):
+	def __call__(self, image, anns=None, class_name=None):
 		if np.random.random()<self.random_ratio:
 			noise_num = int(0.001 * image.shape[0] * image.shape[1])
 			for i in range(noise_num):
 				temp_x = np.random.randint(0, image.shape[0])
 				temp_y = np.random.randint(0, image.shape[1])
 				image[temp_x][temp_y] = 255
-		return image
+		return image, anns
 
 class RandomCrop(object):
 	def __init__(self,random_ratio, shift):
 		self.shift = shift
 		self.random_ratio=random_ratio
-	def __call__(self, image,bboxes=[]):
+	def __call__(self, image, anns=None, class_name=None):
 		if np.random.random() < self.random_ratio:
 			s = np.array([image.shape[1], image.shape[0]], dtype=np.float32)
 
@@ -113,13 +136,71 @@ class RandomCrop(object):
 			image = cv2.warpAffine(image, trans_input,
 								 (image.shape[1], image.shape[0]),
 								 flags=cv2.INTER_LINEAR)
-			if bboxes == []:
+			if len(anns) == 0:
 				return image
-			bboxes[:,:2] = affine_transform(bboxes[:,:2], trans_input)
-			bboxes[:,2:] = affine_transform(bboxes[:,2:], trans_input)
-			bboxes[:,[0, 2]] = np.clip(bboxes[:,[0, 2]], 0, image.shape[1] - 1)
-			bboxes[:,[1, 3]] = np.clip(bboxes[:,[1, 3]], 0, image.shape[0] - 1)
-		return image
+			anns[:,:2] = affine_transform(anns[:,:2], trans_input)
+			anns[:,2:4] = affine_transform(anns[:,2:4], trans_input)
+			anns[:,[0, 2]] = np.clip(anns[:,[0, 2]], 0, image.shape[1] - 1)
+			anns[:,[1, 3]] = np.clip(anns[:,[1, 3]], 0, image.shape[0] - 1)
+			#remove whose area equals 0
+			areas = (anns[:, 2] - anns[:, 0]) * (anns[:, 3] - anns[:, 1])
+			anns = anns[np.where(areas > 0)]
+		return image, anns
+
+loop_dict = ['top', 'right', 'bottom', 'left']
+class RandomRotate90(object):
+	def __init__(self, random_ratio):
+		self.random_ratio = random_ratio
+	def __call__(self, image, anns=None, class_name=None):
+		if np.random.random() < self.random_ratio:
+			height, width = image.shape[:2]
+			magnitude = np.random.randint(1,4)
+			matRotate = cv2.getRotationMatrix2D((width//2, height//2), -magnitude*90, 1)
+			cos = np.abs(matRotate[0,0])
+			sin = np.abs(matRotate[0,1])
+			nW = int(height*sin + width*cos)
+			nH = int(height*cos + width*sin)
+			matRotate[0,2] += (nW / 2) - width//2
+			matRotate[1,2] += (nH / 2) - height//2
+			image = cv2.warpAffine(image, matRotate, (nW, nH))
+			bboxes, label = anns[:,:4], anns[:,4]
+			#change anns
+			#change the label
+			for i in range(len(anns)):
+				old_classname = class_name[label[i]]
+				if 'horizontal' in old_classname or 'vertical' in old_classname:
+					if magnitude % 2 != 0:
+						if old_classname.find('horizontal') != -1:
+							old_classname = old_classname.replace('horizontal', 'vertical')
+						else:
+							old_classname = old_classname.replace('vertical', 'horizontal')
+				subname_list = old_classname.split('_')
+				lridx = -1
+				tbidx = -1
+				for j in range(len(subname_list)):
+					if subname_list[j] in loop_dict:
+						startidx = loop_dict.index(subname_list[j])
+						endidx = (startidx + magnitude) % 4
+						subname_list[j] = loop_dict[endidx]
+						if subname_list[j] == 'left' or subname_list[j] == 'right':
+							lridx = j
+						if subname_list[j] == 'top' or subname_list[j] == 'bottom':
+							tbidx = j
+				if lridx != -1 and tbidx != -1 and tbidx < lridx:
+					subname_list[tbidx], subname_list[lridx] = subname_list[lridx], subname_list[tbidx]
+				label[i] = class_name.index('_'.join(subname_list))
+			#change the bboxes
+			toplefts = bboxes[:,:2]
+			tmp = np.ones(len(toplefts))
+			homogeneous = np.hstack([toplefts, np.expand_dims(tmp, tmp.ndim)])
+			final_coord_toplefts = np.dot(homogeneous, matRotate.T)
+			bottomrights = bboxes[:,2:]
+			tmp = np.ones(len(bottomrights))
+			homogeneous = np.hstack([bottomrights, np.expand_dims(tmp, tmp.ndim)])
+			final_coord_bottomrights = np.dot(homogeneous, matRotate.T)
+			final_anns = np.hstack([final_coord_toplefts, final_coord_bottomrights, np.expand_dims(label, label.ndim)])
+		return image, anns
+
 
 class RandomShiftScale(object):
 	def __init__(self,random_ratio,shift,scale):
@@ -151,11 +232,11 @@ class Normalize(object):
 	def __init__(self,mean,std):
 		self.mean=np.array(mean, dtype=np.float32)
 		self.std=np.array(std, dtype=np.float32)
-	def __call__(self, image, bboxes=None):
+	def __call__(self, image, anns=None, class_name=None):
 		image = (image.astype(np.float32) / 255.)
 		image = (image - self.mean) / self.std
 		image = image.transpose(2, 0, 1)
-		return image
+		return image, anns
 
 class Resize_seg(object):
 	def __init__(self, resize_width, resize_height):
@@ -256,17 +337,30 @@ class randomCrop_seg(object):
 		return img,[instance, anns[1]]
 
 if __name__ == '__main__':
-	img=cv2.imread("/datastore/data/dataset/coco/train2014/COCO_train2014_000000236177.jpg")
-	bbox=np.array([[198.04,  20.8 , 478.92 ,569.61,1],[401.16, 381.19 ,465.42 ,470.68,2]])
+	img=cv2.imread("/home/dingyaohua/datasets/junctions/train/img_data/NezgU4MTUy0ac.png")
+	labelpath = '/home/dingyaohua/datasets/junctions/train/label_data/NezgU4MTUy0ac.txt'
+	height, width = img.shape[:2]
+	scale = 6
+	img = cv2.resize(img, (int(width/scale), int(height/scale)))
+	anns = []
+	for line in open(labelpath, 'r'):
+		xmin, ymin, xmax, ymax, label = line.rstrip().split(' ')
+		anns.append([int(float(xmin)/scale), int(float(ymin)/scale), int(float(xmax)/scale), int(float(ymax)/scale), int(label)])
+		# anns.append([xmin, ymin, xmax, ymax, label])
+	anns = np.array(anns)
 
-	aug=DataAugment([RandomCrop(1, 0.1),])
-	for i in bbox:
-		cv2.rectangle(img,(int(i[0]),int(i[1])),(int(i[2]),int(i[3])),(255,0,0))
-	cv2.imshow("ori", img)
-	img = cv2.imread("/datastore/data/dataset/coco/train2014/COCO_train2014_000000236177.jpg")
+	from utils.visualizer import Visualizer
+	from config.opts import opts
+	opt = opts()
+	opt.from_file('./config/configs/centernet.py')
+	aug=DataAugment([RandomRotate90(1),], opt.class_name)
+	img, anns = aug(img, anns)
+	anns = np.array(anns)
 
-	img_aug,bbox=aug(img,bbox)
-	for i in bbox:
-		cv2.rectangle(img_aug,(int(i[0]),int(i[1])),(int(i[2]),int(i[3])),(255,255,0))
-	cv2.imshow("aug",img_aug)
-	cv2.waitKey()
+	debugger = Visualizer(opt)
+	debugger.add_img(img, img_id='out_gt')
+	for k in range(len(anns)):
+		if(anns[k,4] == 3 or 1):
+			debugger.add_coco_bbox(anns[k, :4], anns[k, -1],
+								   1, img_id='out_gt')
+	debugger.show_all_imgs(pause=True)

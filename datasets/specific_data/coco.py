@@ -1,8 +1,6 @@
 import pycocotools.coco as coco
 from pycocotools.cocoeval import COCOeval
 import numpy as np
-import sys
-sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 import json, os, cv2
 import torch.utils.data as data
 

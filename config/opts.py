@@ -7,11 +7,11 @@ class opts:
 		self.resume=False
 		self.pretrained=True
 		self.save_dir='./checkpoints'
-		self.print_iter=20
+		self.print_iter=2
 		self.gpus=[0]
 		self.batch_size=4
 		self.lr=1e-4
-		self.num_epochs=140
+		self.num_epochs=30000
 
 		self.master_batch_size=-1
 		if self.master_batch_size == -1:
@@ -47,20 +47,4 @@ class opts:
 						self.add_dict2classmem(value)
 					else:
 						exec("self.{}='{}'".format(name,value)) if isinstance(value, str) else exec('self.{}={}'.format(name,value))
-
-	# def update_opts_from_dataset(self, dataset):
-	# 	input_h, input_w = dataset.default_resolution
-	# 	self.mean, self.std = dataset.mean, dataset.std
-	# 	self.num_classes = dataset.num_classes
-
-	# 	# input_h(w): opt.input_h overrides opt.input_res overrides dataset default
-	# 	input_h = self.input_res if self.input_res > 0 else input_h
-	# 	input_w = self.input_res if self.input_res > 0 else input_w
-	# 	self.input_h = self.input_h if self.input_h > 0 else input_h
-	# 	self.input_w = self.input_w if self.input_w > 0 else input_w
-	# 	self.output_h = self.input_h // self.down_ratio
-	# 	self.output_w = self.input_w // self.down_ratio
-	# 	self.input_res = max(self.input_h, self.input_w)
-	# 	self.output_res = max(self.output_h, self.output_w)
-		# self.class_name=dataset.class_name
-		# self.heads=dataset.get_heads(vars(self))
+						

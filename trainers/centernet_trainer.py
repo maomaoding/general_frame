@@ -84,10 +84,6 @@ class CenterNetTrainer(BaseTrainer):
 	def __init__(self, opt):
 		super(CenterNetTrainer, self).__init__(opt)
 
-	def _set_optimizer_param(self, net):
-		params = [{"params": net.parameters(), "lr": self.opt.lr},]
-		return params
-
 	def _get_losses(self, opt):
 		loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss']
 		loss = CenterNetLoss(opt)
