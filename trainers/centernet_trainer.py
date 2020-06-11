@@ -84,6 +84,9 @@ class CenterNetTrainer(BaseTrainer):
 	def __init__(self, opt):
 		super(CenterNetTrainer, self).__init__(opt)
 
+	def gen_optimizer(self):
+		return torch.optim.Adam(self.model.parameters(), self.opt.lr)
+
 	def _get_losses(self, opt):
 		loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss']
 		loss = CenterNetLoss(opt)
@@ -100,7 +103,7 @@ class CenterNetTrainer(BaseTrainer):
 		dets_gt = batch['gt'].numpy().reshape(dets.shape[0], -1, dets.shape[2])
 		dets_gt[:, :, :4] *= opt.down_ratio
 		debugger = Visualizer(opt)
-		img = batch['input'][0].detach().cpu().numpy().transpose(1, 2, 0)
+		img = batch['img'][0].detach().cpu().numpy().transpose(1, 2, 0)
 		img = np.clip(((img * opt.std + opt.mean) * 255.), 0, 255).astype(np.uint8)
 		pred = debugger.gen_colormap(output['hm'][0].detach().cpu().numpy())
 		gt = debugger.gen_colormap(batch['hm'][0].detach().cpu().numpy())

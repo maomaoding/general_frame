@@ -165,7 +165,7 @@ class CTDetDataset(BaseTask):
 					draw_dense_reg(dense_wh, hm.max(axis=0), ct_int, wh[k], radius)  # 根据高斯分布设置hw,多个目标取高斯分布大的值覆盖
 				gt_det[k]=np.array([ct[0] - w / 2, ct[1] - h / 2,ct[0] + w / 2, ct[1] + h / 2, 1, cls_id])
 
-		ret = {'input': img, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh}#所有的长度都是在output的heatmap上的长度
+		ret = {'img': img, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh}#所有的长度都是在output的heatmap上的长度
 		if self.opt.dense_wh:
 			hm_a = hm.max(axis=0, keepdims=True)
 			dense_wh_mask = np.concatenate([hm_a, hm_a], axis=0)

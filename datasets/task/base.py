@@ -31,6 +31,3 @@ class BaseTask(data.Dataset):
 
 	def get_data(self, detections):
 		raise NotImplementedError
-
-	def collate_fn(self, data):
-		raise NotImplementedError

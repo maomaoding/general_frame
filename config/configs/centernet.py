@@ -1,7 +1,7 @@
 model=dict(
 	task='centernet',
 	arch="dla34",
-	model_path = "./checkpoints/model_junctionsbest7cls.pth",
+	model_path = "./checkpoints/model_junctionsbest.pth",
 	head_conv=256,#conv layer channels for output head 0 for no conv layer -1 for default setting:256 for dla
 	down_ratio=4,
 	reg_offset=True,
@@ -62,7 +62,6 @@ train_cfg=dict(
 	#train
 	batch_size=4,
 	num_iters=-1,# 'default: #samples / batch_size.'
-	optimizer={'name': 'Adam', 'weight_decay': 5e-5},
 	)
 
 test_cfg=dict(

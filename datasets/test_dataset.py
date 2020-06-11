@@ -5,6 +5,7 @@ from config import opts
 import torch,os
 import numpy as np
 from utils.visualizer import Visualizer
+from trainers.centernet_trainer import ctdet_decode
 
 opt = opts.opts()
 opt.from_file('./config/configs/centernet.py')
@@ -16,7 +17,7 @@ test_dataset = get_dataset(opt, 'train')
 loader = torch.utils.data.DataLoader(test_dataset, batch_size=8, shuffle=False, drop_last=True, num_workers=1)
 index = 3
 for iter_id, batch in enumerate(loader):
-	img = batch['input'][index].detach().cpu().numpy().transpose(1, 2, 0)
+	img = batch['img'][index].detach().cpu().numpy().transpose(1, 2, 0)
 	img = np.clip(((img * opt.std + opt.mean) * 255.), 0, 255).astype(np.uint8)
 	# dets_gt = batch['gt'].numpy().reshape(dets.shape[0], -1, dets.shape[2])
 	dets_gt = batch['gt']
@@ -32,5 +33,4 @@ for iter_id, batch in enumerate(loader):
 								   dets_gt[index, k, 4],
 								   img_id='out_gt')
 	debugger.show_all_imgs(pause=True)
-
 	os._exit(0)

@@ -24,6 +24,7 @@ class BaseTrainer:
 		self.writer = SummaryWriter('logs' + f'/{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}/')
 		self.vis = Visualizer(opt)
 		self.loss_stats, self.loss = self._get_losses(opt)
+
 		self.model = create_model(opt)
 
 		self.optimizer = self.gen_optimizer()
@@ -70,7 +71,7 @@ class BaseTrainer:
 		data_time, batch_time = AverageMeter(), AverageMeter()
 		avg_loss_stats = {l: AverageMeter() for l in self.loss_stats}
 		num_iters = len(data_loader)
-		bar = Bar('{}/{}'.format(opt.task, "effdet"), max=num_iters)
+		bar = Bar('{}:'.format(opt.task), max=num_iters)
 		end = time.time()
 		for iter_id, batch in enumerate(data_loader):
 			data_time.update(time.time() - end)
@@ -98,13 +99,13 @@ class BaseTrainer:
 									'|Net {bt.avg:.3f}s'.format(dt=data_time, bt=batch_time)
 			if opt.print_iter > 0:
 				if iter_id % opt.print_iter == 0:
-					print('{}/{}| {}'.format(opt.task, "effdet", Bar.suffix))
+					print('{}| {}'.format(opt.task, Bar.suffix))
 			else:
 				bar.next()
 
-			self.writer.add_scalar('Loss', avg_loss_stats['loss'].avg, (epoch-1)*num_iters+iter_id)
-			self.writer.add_scalar('reg_loss', avg_loss_stats['reg_loss'].avg, (epoch-1)*num_iters+iter_id)
-			self.writer.add_scalar('cls_loss', avg_loss_stats['cls_loss'].avg, (epoch-1)*num_iters+iter_id)
+			# self.writer.add_scalar('Loss', avg_loss_stats['loss'].avg, (epoch-1)*num_iters+iter_id)
+			# self.writer.add_scalar('reg_loss', avg_loss_stats['reg_loss'].avg, (epoch-1)*num_iters+iter_id)
+			# self.writer.add_scalar('cls_loss', avg_loss_stats['cls_loss'].avg, (epoch-1)*num_iters+iter_id)
 
 			if opt.visual > 0:
 				if opt.print_iter > 0:

@@ -50,7 +50,7 @@ def val():
 
 def train():
 	opt = opts()
-	opt.from_file('./config/configs/efficientdet.py')
+	opt.from_file('./config/configs/centernet.py')
 	opt.device = torch.device('cuda:0' if opt.gpus[0] >= 0 else 'cpu')
 
 	print('Setting up data...')
