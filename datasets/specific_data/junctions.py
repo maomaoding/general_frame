@@ -9,7 +9,7 @@ class Junctions(data.Dataset):
 		labels = []
 		for bb in open(label_path, 'r'):
 			xmin, ymin, xmax, ymax, classid = bb.rstrip().split()
-			label = [float(xmin), float(ymin), float(xmax), float(ymax), float(classid)]
+			label = [float(xmin), float(ymin), float(xmax), float(ymax), int(classid)]
 			labels.append(label)
 		return labels
 
@@ -33,7 +33,7 @@ class Junctions(data.Dataset):
 
 		#for data augmentation
 		for item in self.augment_list:
-			input_img, anns = item(input_img, anns)
+			input_img, anns = item(input_img, anns, self.opt.class_name)
 
 		return input_img, anns
 
@@ -45,10 +45,11 @@ class Junctions(data.Dataset):
 		self.opt = opt
 		self.split = split
 		if split == 'train':
-			self.augment_list = [RandomCrop(0.5,0.1), RandomGaussBlur(0.3), RandomContrastBright(0.3), RandomNoise(0.3),
-								Normalize(opt.mean, opt.std)]
+			self.augment_list = [RandomFlipsub(0.5), RandomRotate90(1), RandomCropsub(0.5,0.1),
+								RandomGaussBlursub(0.3), RandomContrastBrightsub(0.3), RandomNoisesub(0.3),
+								Normalizesub(opt.mean, opt.std)]
 		else:
-			self.augment_list = [Normalize(opt.mean, opt.std)]
+			self.augment_list = [Normalizesub(opt.mean, opt.std)]
 
 		print('==> initializing junctions {} data.'.format(split))
 		self.img_list = []
@@ -74,7 +75,7 @@ class RandomFlipsub(RandomFlip):
 				image = image[:, ::-1, :]
 				anns[:, [0, 2]] = width - anns[:, [2, 0]] - 1
 				for i in range(len(anns)):
-					old_classname = class_name[anns[i, 4]]
+					old_classname = class_name[int(anns[i, 4])]
 					if old_classname.find('right') != -1:
 						anns[i, 4] = class_name.index(old_classname.replace('right', 'left'))
 					elif old_classname.find('left') != -1:
@@ -83,7 +84,7 @@ class RandomFlipsub(RandomFlip):
 				image = image[::-1, :, :]
 				anns[:, [1, 3]] = height - anns[:, [3, 1]] - 1
 				for i in range(len(anns)):
-					old_classname = class_name[anns[i, 4]]
+					old_classname = class_name[int(anns[i, 4])]
 					if old_classname.find('top') != -1:
 						anns[i, 4] = class_name.index(old_classname.replace('top', 'bottom'))
 					elif old_classname.find('bottom') != -1:
@@ -107,10 +108,11 @@ class RandomRotate90(object):
 			matRotate[1,2] += (nH / 2) - height//2
 			image = cv2.warpAffine(image, matRotate, (nW, nH))
 			bboxes, label = anns[:,:4], anns[:,4]
+
 			#change anns
 			#change the label
 			for i in range(len(anns)):
-				old_classname = class_name[label[i]]
+				old_classname = class_name[int(label[i])]
 				if 'horizontal' in old_classname or 'vertical' in old_classname:
 					if magnitude % 2 != 0:
 						if old_classname.find('horizontal') != -1:
@@ -136,10 +138,42 @@ class RandomRotate90(object):
 			toplefts = bboxes[:,:2]
 			tmp = np.ones(len(toplefts))
 			homogeneous = np.hstack([toplefts, np.expand_dims(tmp, tmp.ndim)])
-			final_coord_toplefts = np.dot(homogeneous, matRotate.T)
+			new_toplefts = np.dot(homogeneous, matRotate.T)
 			bottomrights = bboxes[:,2:]
 			tmp = np.ones(len(bottomrights))
 			homogeneous = np.hstack([bottomrights, np.expand_dims(tmp, tmp.ndim)])
-			final_coord_bottomrights = np.dot(homogeneous, matRotate.T)
-			final_anns = np.hstack([final_coord_toplefts, final_coord_bottomrights, np.expand_dims(label, label.ndim)])
-		return image, anns
+			new_bottomrights = np.dot(homogeneous, matRotate.T)
+			final_toplefts = (new_toplefts + new_bottomrights) * 0.5 - abs(new_toplefts - new_bottomrights) * 0.5
+			final_bottomrights = (new_toplefts + new_bottomrights) * 0.5 + abs(new_toplefts - new_bottomrights) * 0.5
+			final_anns = np.hstack([final_toplefts, final_bottomrights, np.expand_dims(label, label.ndim)])
+		return image, final_anns
+
+class RandomCropsub(RandomCrop):
+	def __init__(self, random_ratio, shift):
+		super().__init__(random_ratio, shift)
+	def __call__(self, image, anns=None, class_name=None):
+		return super().__call__(image, anns)
+
+class RandomGaussBlursub(RandomGaussBlur):
+	def __init__(self, random_ratio):
+		super().__init__(random_ratio)
+	def __call__(self, image, anns=None, class_name=None):
+		return super().__call__(image, anns)
+
+class RandomContrastBrightsub(RandomContrastBright):
+	def __init__(self, random_ratio):
+		super().__init__(random_ratio)
+	def __call__(self, image, anns=None, class_name=None):
+		return super().__call__(image, anns)
+
+class RandomNoisesub(RandomNoise):
+	def __init__(self, random_ratio):
+		super().__init__(random_ratio)
+	def __call__(self, image, anns=None, class_name=None):
+		return super().__call__(image, anns)
+
+class Normalizesub(Normalize):
+	def __init__(self, mean,std):
+		super().__init__(mean,std)
+	def __call__(self, image, anns=None, class_name=None):
+		return super().__call__(image, anns)
