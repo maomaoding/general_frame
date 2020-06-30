@@ -44,8 +44,8 @@ class Junctions(data.Dataset):
 
 		self.opt = opt
 		self.split = split
-		if split == 'train':
-			self.augment_list = [RandomFlipsub(0.5), RandomRotate90(1), RandomCropsub(0.5,0.1),
+		if split == 'train':# RandomCropsub(0.5,0.1),RandomFlipsub(0.5),
+			self.augment_list = [RandomRotate90(0.5),
 								RandomGaussBlursub(0.3), RandomContrastBrightsub(0.3), RandomNoisesub(0.3),
 								Normalizesub(opt.mean, opt.std)]
 		else:
@@ -145,8 +145,8 @@ class RandomRotate90(object):
 			new_bottomrights = np.dot(homogeneous, matRotate.T)
 			final_toplefts = (new_toplefts + new_bottomrights) * 0.5 - abs(new_toplefts - new_bottomrights) * 0.5
 			final_bottomrights = (new_toplefts + new_bottomrights) * 0.5 + abs(new_toplefts - new_bottomrights) * 0.5
-			final_anns = np.hstack([final_toplefts, final_bottomrights, np.expand_dims(label, label.ndim)])
-		return image, final_anns
+			anns = np.hstack([final_toplefts, final_bottomrights, np.expand_dims(label, label.ndim)])
+		return image, anns
 
 class RandomCropsub(RandomCrop):
 	def __init__(self, random_ratio, shift):

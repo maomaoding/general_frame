@@ -13,7 +13,7 @@ class CenterNetdet(BaseDetector):
 		else:
 			self.opt.input_h = ((self.opt.input_h-1)|self.opt.pad) + 1
 			self.opt.input_w = ((self.opt.input_w-1)|self.opt.pad) + 1
-		resized_image = cv2.resize(image,(self.opt.input_w,self.opt.input_h))
+		resized_image = cv2.resize(image,(self.opt.input_w,self.opt.input_h), interpolation=cv2.INTER_AREA)
 		inp_image = ((resized_image / 255. - self.mean) / self.std).astype(np.float32)
 		inp_image = inp_image.transpose(2, 0, 1).reshape(1, 3, self.opt.input_h, self.opt.input_w)
 		inp_image = torch.from_numpy(inp_image)

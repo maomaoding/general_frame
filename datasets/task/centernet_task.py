@@ -144,8 +144,8 @@ class CTDetDataset(BaseTask):
 			ann = np.array(anns[k])
 			bbox = ann[:4]
 			cls_id = int(ann[4])
-			bbox[[0, 2]] = np.clip(bbox[[0, 2]]/self.opt.down_ratio, 0, output_w - 1)
-			bbox[[1, 3]] = np.clip(bbox[[1, 3]]/self.opt.down_ratio, 0, output_h - 1)
+			bbox[[0, 2]] = np.clip(bbox[[0, 2]]/self.opt.down_ratio, 0, output_w)
+			bbox[[1, 3]] = np.clip(bbox[[1, 3]]/self.opt.down_ratio, 0, output_h)
 			h, w = bbox[3] - bbox[1], bbox[2] - bbox[0]
 			if h > 0 and w > 0:
 				radius = gaussian_radius((math.ceil(h), math.ceil(w)))
