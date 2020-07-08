@@ -40,7 +40,7 @@ class Junctions(data.Dataset):
 	def __init__(self, opt, split='train'):
 		super(Junctions, self).__init__()
 		self.data_dir = os.path.join(opt.data_dir, opt.dataset)
-		self.train_root = os.path.join(self.data_dir, split)
+		self.trainval_root = os.path.join(self.data_dir, split)
 
 		self.opt = opt
 		self.split = split
@@ -56,8 +56,8 @@ class Junctions(data.Dataset):
 		self.label_list = []
 		for path in open(os.path.join(self.data_dir, split+'.txt'), 'r'):
 			img, label = path.rstrip().split(' ')
-			self.img_list.append(os.path.join(self.train_root, img))
-			self.label_list.append(os.path.join(self.train_root, label))
+			self.img_list.append(os.path.join(self.trainval_root, img))
+			self.label_list.append(os.path.join(self.trainval_root, label))
 		self.num_samples = len(self.img_list)
 		print('Loaded {} {} samples'.format(split, self.num_samples))
 

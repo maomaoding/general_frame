@@ -1,7 +1,7 @@
 model=dict(
 	task='centernet',
 	arch="dla34",
-	model_path = "./checkpoints/model_junctionsbest.pth",
+	model_path = "./checkpoints/model_dla34best.pth",
 	head_conv=256,#conv layer channels for output head 0 for no conv layer -1 for default setting:256 for dla
 	down_ratio=4,
 	reg_offset=True,
@@ -14,12 +14,12 @@ model=dict(
 	)
 
 dataset=dict(
-	data_dir="/home/dingyaohua/datasets",
+	data_dir="/home/dingyaohua/remote/datasets",
 	dataset="junctions",
 	keep_res=False, #保持分辨率
 	mean = [0.40789654, 0.44719302, 0.47026115],
 	std = [0.28863828, 0.27408164, 0.27809835],
-	num_classes=29,
+	num_classes=30,
 	#augment
 	shift_scale_prob=0.7,
 	shift_range = 0.1,  # 图像增强位移范围
@@ -28,8 +28,8 @@ dataset=dict(
 	# input 网络输入图像大小
 	pad=31, #有上采样的层就需要保证输入大小能被32整除，input_res=1时计算使用
 	input_res=-1, #-1：数据集默认值，会被input_h和input_w覆盖
-	input_h=512, #input height. -1 for default from dataset
-	input_w=512, #input width. -1 for default from dataset
+	input_h=640, #input height. -1 for default from dataset
+	input_w=640, #input width. -1 for default from dataset
 	max_objs = 128,#max number of output objects
 	nms=False,
 
@@ -40,7 +40,8 @@ dataset=dict(
 				'horizontal_sliding_door', 'vertical_sliding_door',
 				'double_door_top', 'double_door_right', 'double_door_bottom', 'double_door_left',
 				'horizontal_window', 'vertical_window',
-				'bay_window_top', 'bay_window_right', 'bay_window_bottom', 'bay_window_left']
+				'bay_window_top', 'bay_window_right', 'bay_window_bottom', 'bay_window_left',
+				'flue']
 	)
 
 heads = {'hm': dataset['num_classes'],
@@ -60,7 +61,7 @@ train_cfg=dict(
 	off_weight=1,
 	wh_weight=0.1,
 	#train
-	batch_size=4,
+	batch_size=24,
 	num_iters=-1,# 'default: #samples / batch_size.'
 	)
 
@@ -71,5 +72,5 @@ test_cfg=dict(
 	)
 
 vis_thresh=0.3
-visual=True
-show_results=True
+visual=False
+show_results=False

@@ -1,5 +1,6 @@
 import torch,os
 import torch.nn as nn
+import math
 from torch.nn.init import _calculate_fan_in_and_fan_out, _no_grad_normal_
 
 def variance_scaling_(tensor, gain=1.):

@@ -11,7 +11,7 @@ class opts:
 		self.gpus=[0]
 		self.batch_size=4
 		self.lr=1e-4
-		self.num_epochs=30000
+		self.num_epochs=500
 
 		self.master_batch_size=-1
 		if self.master_batch_size == -1:
