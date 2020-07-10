@@ -110,7 +110,6 @@ class CenterNetdet(BaseDetector):
 		Calculate the AP for each class
 		"""
 		sum_AP = 0.0
-		ap_dictionary = {}
 		count_true_positives = {}
 		for class_name in list(gt_counter_per_class.keys()):
 			count_true_positives[class_name] = 0

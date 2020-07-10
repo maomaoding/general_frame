@@ -203,4 +203,4 @@ class EfficientDetTrainer(BaseTrainer):
 		# 		score = 1
 		# 		vis.add_coco_bbox(bboxes.cpu(), obj.cpu(), score, img_id='gt')
 
-		vis.show_all_imgs(pause=False)
+		# vis.show_all_imgs(pause=False)

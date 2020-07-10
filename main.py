@@ -70,14 +70,14 @@ def test_video():
 
 def val():
 	opt = opts()
-	opt.from_file('./config/configs/centernet.py')
+	opt.from_file('./config/configs/efficientdet.py')
 	detector = get_detector(opt)
 	ap = detector.val_metric()
 	print(ap)
 
 def train():
 	opt = opts()
-	opt.from_file('./config/configs/centernet.py')
+	opt.from_file('./config/configs/efficientdet.py')
 	opt.device = torch.device('cuda:0' if opt.gpus[0] >= 0 else 'cpu')
 
 	print('Setting up data...')

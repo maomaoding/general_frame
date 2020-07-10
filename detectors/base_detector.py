@@ -13,8 +13,8 @@ class BaseDetector(object):
 
 		print('Creating model...')
 		self.model = create_model(opt)
-		self.model = load_model(self.model, opt.model_path)
-		# self.model.load_state_dict(torch.load(opt.model_path), strict=False)
+		# self.model = load_model(self.model, opt.model_path)
+		self.model.load_state_dict(torch.load(opt.model_path), strict=False)
 		self.model = self.model.to(opt.device)
 		self.model.eval()
 

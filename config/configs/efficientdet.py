@@ -1,7 +1,7 @@
 model = dict(
 	task = 'efficientdet',
 	arch = 'efficientdet',
-	model_path = "./checkpoints/model_junctionsbest.pth",
+	model_path = "./checkpoints/efficientdet.pth",
 	compound_coef = 0,
 
 	load_weights = False,
@@ -10,7 +10,7 @@ model = dict(
 	)
 
 dataset = dict(
-	data_dir="/home/dingyaohua/datasets",
+	data_dir="/home/dingyaohua/remote/datasets",
 	dataset="junctions",
 	keep_res=False, #保持分辨率
 	mean = [0.40789654, 0.44719302, 0.47026115],
@@ -38,3 +38,5 @@ train_cfg=dict(
 	)
 
 visual=False
+show_results=False
+export_onnx = False
