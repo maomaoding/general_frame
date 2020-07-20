@@ -110,9 +110,7 @@ class CenterNetdet(BaseDetector):
 		Calculate the AP for each class
 		"""
 		sum_AP = 0.0
-		count_true_positives = {}
 		for class_name in list(gt_counter_per_class.keys()):
-			count_true_positives[class_name] = 0
 			"""
 			Load detection-results of that class
 			"""
@@ -156,7 +154,6 @@ class CenterNetdet(BaseDetector):
 					if not bool(gt_match['used']):
 						tp[idx] = 1
 						gt_match['used'] = True
-						count_true_positives[class_name] += 1
 						#update the ".json" file
 						with open(gt_file, 'w') as f:
 							f.write(json.dumps(ground_truth_data))
