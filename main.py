@@ -21,7 +21,7 @@ def test_imgfolder():
 	if not os.path.exists(output_folder):
 		os.mkdir(output_folder)
 
-	folder_path = '/home/dingyaohua/remote/datasets/junctions/val/img_data'
+	folder_path = '/home/dingyaohua/Downloads/jira_bug_png'
 	for file in os.listdir(folder_path):
 		if 'txt' in file:
 			continue
@@ -29,6 +29,7 @@ def test_imgfolder():
 		height, width = img.shape[:2]
 
 		debugger.add_img(img, img_id=file)
+		ret = detector.run(img)
 		detection = ret['results'].detach().cpu().numpy()
 		detection[:, :, [0, 2]] = detection[:, :, [0, 2]] * opt.down_ratio / opt.input_w * width
 		detection[:, :, [1, 3]] = detection[:, :, [1, 3]] * opt.down_ratio / opt.input_h * height
@@ -48,7 +49,7 @@ def output_model_weights():
 	opt.from_file('./config/configs/centernet.py')
 	detector = get_detector(opt)
 
-	torch.save(detector.model.state_dict(), 'centernet_ver5.pth')
+	torch.save(detector.model.state_dict(), 'centernet_ver6_640.pth')
 
 def test_video():
 	time_stats = ['tot', 'pre', 'net']
@@ -70,7 +71,7 @@ def test_video():
 
 def val():
 	opt = opts()
-	opt.from_file('./config/configs/efficientdet.py')
+	opt.from_file('./config/configs/centernet.py')
 	detector = get_detector(opt)
 	ap = detector.val_metric()
 	print(ap)
@@ -96,7 +97,8 @@ def train():
 		batch_size=1,
 		shuffle=False,
 		num_workers=1,
-		pin_memory=True
+		pin_memory=True,
+		collate_fn=dataset.collate_fn if 'collate_fn' in dir(dataset) else None,
 	)
 
 	print('Creating model...')
