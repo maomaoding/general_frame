@@ -1,5 +1,5 @@
 import time,torch,os
-import datetime
+import datetime,tqdm
 from utils.data_parallel import DataParallel
 from utils.utils import AverageMeter
 from progress.bar import Bar
@@ -30,8 +30,8 @@ class BaseTrainer:
 		self.optimizer = self.gen_optimizer()
 
 		if opt.model_path != '':
-			self.model = load_model(self.model, opt.model_path, None, opt.resume)
-			# self.model.load_state_dict(torch.load(opt.model_path), strict=False)
+			# self.model = load_model(self.model, opt.model_path, None, opt.resume)
+			self.model.load_state_dict(torch.load(opt.model_path), strict=False)
 		else:
 			print('[Info] initializing weights...')
 			init_weights(self.model)
@@ -73,7 +73,8 @@ class BaseTrainer:
 		num_iters = len(data_loader)
 		bar = Bar('{}:'.format(opt.task), max=num_iters)
 		end = time.time()
-		for iter_id, batch in enumerate(data_loader):
+		pbar = tqdm.tqdm(data_loader)
+		for iter_id, batch in enumerate(pbar):
 			data_time.update(time.time() - end)
 			for k in batch:
 				if k != 'gt':
@@ -90,16 +91,19 @@ class BaseTrainer:
 			Bar.suffix = '{phase}: [{0}][{1}/{2}]|Tot: {total:}'.format(# |ETA: {eta:}
 				epoch, iter_id, num_iters, phase=phase,
 				total=bar.elapsed_td)#, eta=bar.eta_td
+			loss_suffix = ''
 			for l in avg_loss_stats:
 				avg_loss_stats[l].update(
 					loss_stats[l].mean().item(), batch['img'].size(0))
-				Bar.suffix += '|{} {:.4f} '.format(l, avg_loss_stats[l].avg)
+				loss_suffix += '|{} {:.4f} '.format(l, avg_loss_stats[l].avg)
+			Bar.suffix += loss_suffix
 
 			Bar.suffix = Bar.suffix + '|Data {dt.val:.3f}s({dt.avg:.3f}s) ' \
 									'|Net {bt.avg:.3f}s'.format(dt=data_time, bt=batch_time)
 			if opt.print_iter > 0:
 				if iter_id % opt.print_iter == 0:
-					print('{}| {}'.format(opt.task, Bar.suffix))
+					# print('{}| {}'.format(opt.task, Bar.suffix))
+					pbar.set_description(loss_suffix)
 			else:
 				bar.next()
 
