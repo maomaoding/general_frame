@@ -184,6 +184,7 @@ class Visualizer(object):
 
 	def show_all_imgs(self, pause=False, time=0):
 		for i, v in self.imgs.items():
+			cv2.namedWindow('{}'.format(i), cv2.WINDOW_GUI_NORMAL)
 			cv2.imshow('{}'.format(i), v)
 		if cv2.waitKey(0 if pause else 1) == 27:
 			import sys

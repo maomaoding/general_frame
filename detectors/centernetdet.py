@@ -29,20 +29,19 @@ class CenterNetdet(BaseDetector):
 		dets = ctdet_decode(hm, wh, reg=reg, cat_spec_wh=self.opt.cat_spec_wh, K=self.opt.max_objs)
 		return output, dets, forward_time
 
-	def show_results(self, debugger, image, dets, output, scale=1):
+	def show_results(self, debugger, image, dets):
 		detection = dets.detach().cpu().numpy().copy()
-		pred = debugger.gen_colormap(output['hm'][0].detach().cpu().numpy())
-		detection[:, :, [0, 2]] = detection[:, :, [0, 2]] * self.opt.down_ratio
-		detection[:, :, [1, 3]] = detection[:, :, [1, 3]] * self.opt.down_ratio
-		image=cv2.resize(image,pred.shape[:2])
-		debugger.add_blend_img(image, pred, 'pred_hm_{:.1f}'.format(scale))
-		debugger.add_img(image, img_id='out_pred_{:.1f}'.format(scale))
+		height, width = image.shape[:2]
+		detection[:, :, [0, 2]] = detection[:, :, [0, 2]] * self.opt.down_ratio / self.opt.input_w * width
+		detection[:, :, [1, 3]] = detection[:, :, [1, 3]] * self.opt.down_ratio / self.opt.input_h * height
+		debugger.add_img(image, img_id='pred_img')
 		for k in range(len(dets[0])):
 			if detection[0, k, 4] > self.opt.vis_thresh:
 				debugger.add_coco_bbox(detection[0, k, :4], detection[0, k, -1],
 									   detection[0, k, 4],
-									   img_id='out_pred_{:.1f}'.format(scale))
-		debugger.show_all_imgs(pause=self.pause)
+									   img_id='pred_img')
+		if self.opt.show_results:
+			debugger.show_all_imgs(pause=self.pause)
 
 	def export_onnx(self):
 		input_h = ((self.opt.input_h - 1) | self.opt.pad) + 1

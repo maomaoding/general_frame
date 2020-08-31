@@ -10,12 +10,10 @@ import numpy as np
 def test_imgfolder():
 	time_stats = ['tot', 'pre', 'net']
 	opt = opts()
-	opt.from_file('./config/configs/centernet.py')
+	opt.from_file('./config/configs/efficientdet.py')
 	detector = get_detector(opt)
 	detector.pause=False
 	opt.show_results=False
-
-	debugger = Visualizer(opt)
 
 	output_folder = './output'
 	if not os.path.exists(output_folder):
@@ -26,18 +24,9 @@ def test_imgfolder():
 		if 'txt' in file:
 			continue
 		img = cv2.imread(os.path.join(folder_path, file))
-		height, width = img.shape[:2]
 
-		debugger.add_img(img, img_id=file)
 		ret = detector.run(img)
-		detection = ret['results'].detach().cpu().numpy()
-		detection[:, :, [0, 2]] = detection[:, :, [0, 2]] * opt.down_ratio / opt.input_w * width
-		detection[:, :, [1, 3]] = detection[:, :, [1, 3]] * opt.down_ratio / opt.input_h * height
-		for k in range(len(detection[0])):
-			if detection[0,k,4] > opt.vis_thresh:
-				debugger.add_coco_bbox(detection[0,k,:4], detection[0,k,-1], detection[0,k,4],
-									img_id=file)
-		cv2.imwrite(os.path.join(output_folder, file), debugger.imgs[file])
+		cv2.imwrite(os.path.join(output_folder, file), ret['dets_image'])
 
 		time_str = ''
 		for stat in time_stats:

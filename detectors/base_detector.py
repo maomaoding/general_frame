@@ -13,8 +13,8 @@ class BaseDetector(object):
 
 		print('Creating model...')
 		self.model = create_model(opt)
-		# self.model = load_model(self.model, opt.model_path)
-		self.model.load_state_dict(torch.load(opt.model_path), strict=False)
+		self.model = load_model(self.model, opt.model_path)
+		# self.model.load_state_dict(torch.load(opt.model_path), strict=False)
 		self.model = self.model.to(opt.device)
 		self.model.eval()
 
@@ -47,11 +47,10 @@ class BaseDetector(object):
 		end_time = time.time()
 		tot_time = end_time - start_time
 
-		if self.opt.show_results:
-			self.show_results(debugger, image, dets, raw_output)
+		self.show_results(debugger, image, dets)
 
-		return {'results': dets, 'tot': tot_time, 'load': load_time,
-				'pre': pre_time, 'net': net_time}
+		return {'dets_data': dets, 'dets_image': debugger.imgs['pred_img'], 'tot': tot_time,
+				'load': load_time, 'pre': pre_time, 'net': net_time}
 
 	def prepare_input(self, image):
 		raise NotImplementedError

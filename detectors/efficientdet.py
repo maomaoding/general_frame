@@ -37,14 +37,18 @@ class Efficientdet(BaseDetector):
 							threshold, iou_threshold)
 		return output, out, forward_time
 
-	def show_results(self, debugger, image, dets):
-		debugger.add_img(img, img_id='pred')
+	def show_results(self, debugger, image, out):
+		debugger.add_img(image, img_id='pred_img')
+		height, width = image.shape[:2]
 		for j in range(len(out[0]['rois'])):
 			bboxes = out[0]['rois'][j].astype(np.int)
+			bboxes[[0, 2]] = bboxes[[0, 2]] / self.opt.input_w * width
+			bboxes[[1, 3]] = bboxes[[1, 3]] / self.opt.input_h * height
 			obj = out[0]['class_ids'][j]
 			score = float(out[0]['scores'][j])
-			debugger.add_coco_bbox(bboxes, obj, score, img_id='pred')
-		debugger.show_all_imgs(pause=self.pause)
+			debugger.add_coco_bbox(bboxes, obj, score, img_id='pred_img')
+		if self.opt.show_results:
+			debugger.show_all_imgs(pause=self.pause)
 
 	def export_onnx(self):
 		input_h = ((self.opt.input_h - 1) | self.opt.pad) + 1
