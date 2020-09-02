@@ -4,6 +4,7 @@ from trainers import get_trainer
 from detectors import get_detector
 from models.utils import save_model
 from utils.visualizer import Visualizer
+from utils.flops_counter import get_model_complexity_info
 import torch,os,cv2,json,fire
 import numpy as np
 
@@ -32,6 +33,14 @@ def test_imgfolder():
 		for stat in time_stats:
 			time_str = time_str + '{} {:.3f}s |'.format(stat, ret[stat])
 		print(time_str)
+
+def output_model_flops():
+	opt = opts()
+	opt.from_file('./config/configs/centernet.py')
+	detector = get_detector(opt)
+	flops, params = get_model_complexity_info(detector.model.cuda(), (3,640,640), as_strings=True,
+											print_per_layer_stat=True)
+	print('Params/Flops: {}/{}'.format(params, flops))
 
 def output_model_weights():
 	opt = opts()
