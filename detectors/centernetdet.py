@@ -91,7 +91,7 @@ class CenterNetdet(BaseDetector):
 				json.dump(bounding_boxes, outfile)
 
 			#dets to this img
-			bboxes = ret['results'][0].detach().cpu().numpy()
+			bboxes = ret['dets_data'][0].detach().cpu().numpy()
 			for bb in bboxes:
 				if bb[4] > self.opt.vis_thresh:
 					ratio_w = self.opt.down_ratio/self.opt.input_w*width

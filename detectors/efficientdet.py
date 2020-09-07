@@ -99,7 +99,7 @@ class Efficientdet(BaseDetector):
 			#dets to this img
 			ratio_w = width / self.opt.input_w
 			ratio_h = height / self.opt.input_h
-			objs = ret['results'][0]
+			objs = ret['dets_data'][0]
 			for j in range(len(objs['rois'])):
 				bbox = objs['rois'][j]
 				bbox[[0,2]] = bbox[[0,2]] * ratio_w
