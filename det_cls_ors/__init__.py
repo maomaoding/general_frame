@@ -8,5 +8,5 @@ _detector_factory = {
 	'efficientdet': Efficientdet,
 }
 
-def get_detector(opt):
+def get_det_cls_ors(opt):
 	return _detector_factory[opt.task](opt)

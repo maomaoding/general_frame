@@ -30,8 +30,8 @@ class BaseTrainer:
 		self.optimizer = self.gen_optimizer()
 
 		if opt.model_path != '':
-			# self.model = load_model(self.model, opt.model_path, None, opt.resume)
-			self.model.load_state_dict(torch.load(opt.model_path), strict=False)
+			self.model = load_model(self.model, opt.model_path, None, opt.resume)
+			# self.model.load_state_dict(torch.load(opt.model_path), strict=False)
 		else:
 			print('[Info] initializing weights...')
 			init_weights(self.model)
