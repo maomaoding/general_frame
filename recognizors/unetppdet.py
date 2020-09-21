@@ -1,8 +1,8 @@
-from .base_detector import BaseDetector
+from .base_recognizor import BaseRecognizor
 import cv2,torch,time,os
 import numpy as np
 
-class Unetppdet(BaseDetector):
+class Unetppdet(BaseRecognizor):
 	def prepare_input(self, image):
 		resized_image = cv2.resize(image,
 						(self.opt.resize_width, self.opt.resize_height),

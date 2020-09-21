@@ -4,7 +4,7 @@ from models.utils import load_model
 from utils.visualizer import Visualizer
 import numpy as np
 
-class BaseDetector(object):
+class BaseRecognizor(object):
 	def __init__(self, opt):
 		if opt.gpus[0] >= 0:
 		  opt.device = torch.device('cuda')

@@ -1,7 +1,7 @@
 from config.opts import opts
 from datasets import get_dataset
 from trainers import get_trainer
-from det_cls_ors import get_det_cls_ors
+from recognizors import get_recognizor
 from models.utils import save_model
 from utils.visualizer import Visualizer
 from utils.flops_counter import get_model_complexity_info
@@ -12,8 +12,8 @@ def test_imgfolder():
 	time_stats = ['tot', 'pre', 'net']
 	opt = opts()
 	opt.from_file('./config/configs/efficientdet.py')
-	det_cls_ors = get_det_cls_ors(opt)
-	det_cls_ors.pause=False
+	recognizor = get_recognizor(opt)
+	recognizor.pause=False
 	opt.show_results=False
 
 	output_folder = './output'
@@ -26,7 +26,7 @@ def test_imgfolder():
 			continue
 		img = cv2.imread(os.path.join(folder_path, file))
 
-		ret = det_cls_ors.run(img)
+		ret = recognizor.run(img)
 		cv2.imwrite(os.path.join(output_folder, file), ret['dets_image'])
 
 		time_str = ''
@@ -37,24 +37,24 @@ def test_imgfolder():
 def output_model_flops():
 	opt = opts()
 	opt.from_file('./config/configs/centernet.py')
-	det_cls_ors = get_det_cls_ors(opt)
-	flops, params = get_model_complexity_info(det_cls_ors.model.cuda(), (3,640,640), as_strings=True,
+	recognizor = get_recognizor(opt)
+	flops, params = get_model_complexity_info(recognizor.model.cuda(), (3,640,640), as_strings=True,
 											print_per_layer_stat=True)
 	print('Params/Flops: {}/{}'.format(params, flops))
 
 def output_model_weights():
 	opt = opts()
 	opt.from_file('./config/configs/centernet.py')
-	det_cls_ors = get_det_cls_ors(opt)
+	recognizor = get_recognizor(opt)
 
-	torch.save(det_cls_ors.model.state_dict(), 'centernet_ver7_640.pth')
+	torch.save(recognizor.model.state_dict(), 'centernet_ver7_640.pth')
 
 def test_video():
 	time_stats = ['tot', 'pre', 'net']
 	opt = opts()
 	opt.from_file('./config/configs/centernet.py')
-	det_cls_ors = get_det_cls_ors(opt)
-	det_cls_ors.pause=False
+	recognizor = get_recognizor(opt)
+	recognizor.pause=False
 
 	video_path = '/home/cowa/data_server/zhq/2019-09-10_16.59/_camera_image_raw.mp4'
 	cam = cv2.VideoCapture(video_path)
@@ -70,8 +70,8 @@ def test_video():
 def val():
 	opt = opts()
 	opt.from_file('./config/configs/SAN.py')
-	det_cls_ors = get_det_cls_ors(opt)
-	ap = det_cls_ors.val_metric()
+	recognizor = get_recognizor(opt)
+	ap = recognizor.val_metric()
 	print(ap)
 
 def train():
