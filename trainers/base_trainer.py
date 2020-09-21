@@ -8,16 +8,6 @@ from models.utils import load_model, init_weights
 from tensorboardX import SummaryWriter
 from utils.visualizer import Visualizer
 
-class ModelWithLoss(torch.nn.Module):
-	def __init__(self, model, loss):
-		super(ModelWithLoss, self).__init__()
-		self.model = model
-		self.loss = loss
-	def forward(self, batch):
-		outputs = self.model(batch['img'])
-		loss, loss_stats = self.loss(outputs, batch)
-		return outputs, loss, loss_stats
-
 class BaseTrainer:
 	def __init__(self, opt):
 		self.opt = opt
@@ -36,7 +26,6 @@ class BaseTrainer:
 			print('[Info] initializing weights...')
 			init_weights(self.model)
 
-		self.model_with_loss = ModelWithLoss(self.model, self.loss)
 		self.set_device(opt.gpus, opt.chunk_sizes, opt.device)
 
 	def get_optimizer(self):
@@ -47,11 +36,11 @@ class BaseTrainer:
 
 	def set_device(self, gpus, chunk_sizes, device):
 		if len(gpus) > 1:
-			self.model_with_loss = DataParallel(
-					self.model_with_loss, device_ids=gpus,
-					chunk_sizes=chunk_sizes).to(device)
+			self.model = DataParallel(self.model, device_ids=gpus, chunk_sizes=chunk_sizes).to(device)
+			self.loss = DataParallel(self.loss, device_ids=gpus, chunk_sizes=chunk_sizes).to(device)
 		else:
-			self.model_with_loss = self.model_with_loss.to(device)
+			self.model = self.model.to(device)
+			self.loss = self.loss.to(device)
 
 		for state in self.optimizer.state.values():
 			for k, v in state.items():
@@ -59,14 +48,13 @@ class BaseTrainer:
 					state[k] = v.to(device=device, non_blocking=True)
 
 	def run_epoch(self, phase, epoch, data_loader):
-		model_with_loss = self.model_with_loss
 		opt = self.opt
 		if phase == 'train':
-			model_with_loss.train()
+			self.model.train()
 		else:
 			if len(opt.gpus) > 1:
-				model_with_loss = self.model_with_loss.module
-			model_with_loss.eval()
+				self.model = self.model.module
+			self.model.eval()
 			torch.cuda.empty_cache()
 		data_time, batch_time = AverageMeter(), AverageMeter()
 		avg_loss_stats = {l: AverageMeter() for l in self.loss_stats}
@@ -79,7 +67,7 @@ class BaseTrainer:
 			for k in batch:
 				if k != 'gt':
 					batch[k] = batch[k].to(device=opt.device, non_blocking=True)
-			output, loss, loss_stats = model_with_loss(batch)
+			output, loss, loss_stats = self.model_with_loss(batch)
 			# loss = loss.mean()
 			if phase == 'train':
 				self.optimizer.zero_grad()
@@ -135,4 +123,7 @@ class BaseTrainer:
 		return self.run_epoch('train', epoch, data_loader)
 
 	def gen_optimizer(self):
+		raise NotImplementedError
+
+	def model_with_loss(self, batch):
 		raise NotImplementedError

@@ -204,3 +204,8 @@ class EfficientDetTrainer(BaseTrainer):
 		# 		vis.add_coco_bbox(bboxes.cpu(), obj.cpu(), score, img_id='gt')
 
 		# vis.show_all_imgs(pause=False)
+
+	def model_with_loss(self, batch):
+		outputs = self.model(batch['img'])
+		loss, loss_stats = self.loss(outputs, batch)
+		return outputs, loss, loss_stats

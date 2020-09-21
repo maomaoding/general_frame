@@ -65,3 +65,8 @@ class SANTrainer(BaseTrainer):
 		else:
 			loss = CrossEntropyLoss().cuda()
 		return loss_states, loss
+
+	def model_with_loss(self, batch):
+		outputs = self.model(batch['img'])
+		loss, loss_stats = self.loss(outputs, batch)
+		return outputs, loss, loss_stats

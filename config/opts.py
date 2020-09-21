@@ -1,5 +1,6 @@
 import os,sys
 from importlib import import_module
+import torch
 
 class opts:
 	def __init__(self):
@@ -47,4 +48,5 @@ class opts:
 						self.add_dict2classmem(value)
 					else:
 						exec("self.{}='{}'".format(name,value)) if isinstance(value, str) else exec('self.{}={}'.format(name,value))
-						
+		
+		self.device = torch.device('cuda:0' if self.gpus[0] >= 0 else 'cpu')

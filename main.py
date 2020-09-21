@@ -69,7 +69,7 @@ def test_video():
 
 def val():
 	opt = opts()
-	opt.from_file('./config/configs/centernet.py')
+	opt.from_file('./config/configs/SAN.py')
 	det_cls_ors = get_det_cls_ors(opt)
 	ap = det_cls_ors.val_metric()
 	print(ap)
@@ -77,7 +77,6 @@ def val():
 def train():
 	opt = opts()
 	opt.from_file('./config/configs/SAN.py')
-	opt.device = torch.device('cuda:0' if opt.gpus[0] >= 0 else 'cpu')
 
 	print('Setting up data...')
 	dataset=get_dataset(opt,"train")

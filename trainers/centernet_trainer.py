@@ -122,3 +122,8 @@ class CenterNetTrainer(BaseTrainer):
 									   dets_gt[0, k, 4], img_id='out_gt')
 		if opt.visual:
 			debugger.show_all_imgs(pause=False)
+
+	def model_with_loss(self, batch):
+		outputs = self.model(batch['img'])
+		loss, loss_stats = self.loss(outputs, batch)
+		return outputs, loss, loss_stats
