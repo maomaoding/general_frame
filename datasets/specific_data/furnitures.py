@@ -61,7 +61,10 @@ class Furnitures(data.Dataset):
 
 		if split == 'train':
 			self.augment_list = [RandomGaussBlursub(0.3), RandomNoisesub(0.3), Normalizesub(opt.mean, opt.std)]
+		else:
+			self.augment_list = [Normalizesub(opt.mean, opt.std)]
 		self.opt = opt
+		self.split = split
 
 	def __len__(self):
 		return len(self.samples)

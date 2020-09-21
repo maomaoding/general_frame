@@ -39,3 +39,4 @@ train_cfg = dict(
 	)
 
 visual=False
+export_onnx=False

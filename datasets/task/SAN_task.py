@@ -232,6 +232,8 @@ class SANDataset(BaseTask):
 		return {'img': img, 'annot': anns}
 
 	def collate_fn(self, data):
+		if self.split == 'val':
+			return torch.utils.data.dataloader.default_collate(data)
 		mixup_active = self.opt.mixup > 0 or self.opt.cutmix > 0. or self.opt.cutmix_minmax is not None
 		mixup_args = dict(
 				mixup_alpha=self.opt.mixup, cutmix_alpha=self.opt.cutmix, cutmix_minmax=self.opt.cutmix_minmax,
