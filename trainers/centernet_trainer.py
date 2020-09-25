@@ -1,9 +1,10 @@
-from .base_trainer import BaseTrainer
+from base_trainer import BaseTrainer
 from utils.losses import FocalLoss, RegL1Loss, RegLoss, NormRegL1Loss, RegWeightedL1Loss
 from utils.utils import _sigmoid, _nms, _topk, _tranpose_and_gather_feat
 from utils.visualizer import Visualizer
 import torch
 import numpy as np
+from utils.registry import *
 
 def ctdet_decode(heat, wh, reg=None, cat_spec_wh=False, K=100):
 	batch, cat, height, width = heat.size()
@@ -79,10 +80,10 @@ class CenterNetLoss(torch.nn.Module):
 					  'wh_loss': wh_loss, 'off_loss': off_loss}
 		return loss, loss_stats
 
-
-class CenterNetTrainer(BaseTrainer):
+@register_trainer
+class centernet_trainer(BaseTrainer):
 	def __init__(self, opt):
-		super(CenterNetTrainer, self).__init__(opt)
+		super(centernet_trainer, self).__init__(opt)
 
 	def gen_optimizer(self):
 		return torch.optim.Adam(self.model.parameters(), self.opt.lr)

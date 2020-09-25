@@ -1,4 +1,4 @@
-from .base_recognizor import BaseRecognizor
+from base_recognizor import BaseRecognizor
 import cv2,torch,time,os
 import numpy as np
 

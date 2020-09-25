@@ -1,11 +1,13 @@
 from trainers.centernet_trainer import ctdet_decode
-from .base_recognizor import BaseRecognizor
+from base_recognizor import BaseRecognizor
 import cv2,torch,time,os,json,shutil
 import numpy as np
 from utils.utils import voc_ap
 from collections import defaultdict
+from utils.registry import *
 
-class CenterNetdet(BaseRecognizor):
+@register_recognizor
+class centernet_recognizor(BaseRecognizor):
 	def prepare_input(self, image):
 		height, width = image.shape[0:2]
 		if self.opt.keep_res:

@@ -1,11 +1,13 @@
-from .base_recognizor import BaseRecognizor
+from base_recognizor import BaseRecognizor
 import os,cv2,torch,time,json,shutil
 import numpy as np
 from utils.utils import voc_ap
 from collections import defaultdict
 from models.networks.efficientdet import BBoxTransform, ClipBoxes, postprocess
+from utils.registry import *
 
-class Efficientdet(BaseRecognizor):
+@register_recognizor
+class efficientdet_recognizor(BaseRecognizor):
 	def prepare_input(self, image):
 		height, width = image.shape[:2]
 		if self.opt.keep_res:

@@ -1,8 +1,9 @@
-from .base_recognizor import BaseRecognizor
+from base_recognizor import BaseRecognizor
 from datasets import get_dataset
 from utils.utils import AverageMeter
 import torch
 import tqdm
+from utils.registry import *
 
 def accuracy(output, target, topk=(1,)):
 	"""Computes the accuracy over the k top predictions for the specified values of k"""
@@ -28,7 +29,8 @@ def intersectionAndUnionGPU(output, target, K, ignore_index=255):
 	area_union = area_output + area_target - area_intersection
 	return area_intersection.cuda(), area_union.cuda(), area_target.cuda()
 
-class SANcls(BaseRecognizor):
+@register_recognizor
+class SAN_recognizor(BaseRecognizor):
 	def prepare_input(self, image):
 		resized_image = cv2.resize(image, (self.opt.input_w, self.opt.input_h), interpolation=cv2.INTER_AREA)
 		inp_image = ((resized_image / 255. - self.mean) / self.std).astype(np.float32)

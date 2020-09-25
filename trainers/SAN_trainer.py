@@ -1,7 +1,8 @@
-from .base_trainer import BaseTrainer
+from base_trainer import BaseTrainer
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from utils.registry import *
 
 class SoftTargetCrossEntropy(nn.Module):
 	def __init__(self):
@@ -47,9 +48,10 @@ class CrossEntropyLoss(nn.Module):
 		loss_stats = {'loss': loss}
 		return loss, loss_stats
 
-class SANTrainer(BaseTrainer):
+@register_trainer
+class SAN_trainer(BaseTrainer):
 	def __init__(self, opt):
-		super(SANTrainer, self).__init__(opt)
+		super(SAN_trainer, self).__init__(opt)
 
 	def gen_optimizer(self):
 		return torch.optim.Adam(self.model.parameters(), self.opt.lr)

@@ -1,4 +1,4 @@
-from .base_trainer import BaseTrainer
+from base_trainer import BaseTrainer
 import torch,cv2,os
 import numpy as np
 

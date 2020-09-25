@@ -1,7 +1,8 @@
 import torch, cv2
 import numpy as np
-from .base_trainer import BaseTrainer
+from base_trainer import BaseTrainer
 from models.networks.efficientdet import BBoxTransform, ClipBoxes, postprocess
+from utils.registry import *
 
 def calc_iou(a, b):
 	# a(anchor) [boxes, (y1, x1, y2, x2)]
@@ -158,9 +159,10 @@ class FocalLoss(torch.nn.Module):
 		loss_stats = {'loss': loss, 'reg_loss': reg_loss, 'cls_loss': cls_loss}
 		return loss, loss_stats
 
-class EfficientDetTrainer(BaseTrainer):
+@register_trainer
+class efficientdet_trainer(BaseTrainer):
 	def __init__(self, opt):
-		super(EfficientDetTrainer, self).__init__(opt)
+		super(efficientdet_trainer, self).__init__(opt)
 
 	def _get_losses(self, opt):
 		loss_states = ['loss', 'reg_loss', 'cls_loss']
