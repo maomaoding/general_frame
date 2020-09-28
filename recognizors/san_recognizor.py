@@ -1,4 +1,4 @@
-from base_recognizor import BaseRecognizor
+from .base_recognizor import BaseRecognizor
 from datasets import get_dataset
 from utils.utils import AverageMeter
 import torch

@@ -1,4 +1,4 @@
-from base_trainer import BaseTrainer
+from .base_trainer import BaseTrainer
 from utils.losses import FocalLoss, RegL1Loss, RegLoss, NormRegL1Loss, RegWeightedL1Loss
 from utils.utils import _sigmoid, _nms, _topk, _tranpose_and_gather_feat
 from utils.visualizer import Visualizer

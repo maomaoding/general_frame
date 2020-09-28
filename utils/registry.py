@@ -74,3 +74,4 @@ def get_${arg}(opt):
 
 exec(Template(code_template).substitute(arg='trainer'))
 exec(Template(code_template).substitute(arg='recognizor'))
+exec(Template(code_template).substitute(arg='model'))

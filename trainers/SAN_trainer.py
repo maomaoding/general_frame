@@ -1,4 +1,4 @@
-from base_trainer import BaseTrainer
+from .base_trainer import BaseTrainer
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

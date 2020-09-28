@@ -1,5 +1,5 @@
 from trainers.centernet_trainer import ctdet_decode
-from base_recognizor import BaseRecognizor
+from .base_recognizor import BaseRecognizor
 import cv2,torch,time,os,json,shutil
 import numpy as np
 from utils.utils import voc_ap

@@ -5,6 +5,7 @@ from torch.nn.modules.utils import _pair
 from collections import namedtuple
 from string import Template
 import cupy
+from utils.registry import *
 
 Stream = namedtuple('Stream', ['ptr'])
 CUDA_NUM_THREADS = 1024
@@ -1088,9 +1089,9 @@ class Bottleneck(nn.Module):
 		out += identity
 		return out
 
-class SAN(nn.Module):
+class _SAN(nn.Module):
 	def __init__(self, sa_type, block, layers, kernels, num_classes):
-		super(SAN, self).__init__()
+		super(_SAN, self).__init__()
 		c = 64
 		self.conv_in, self.bn_in = conv1x1(3, c), nn.BatchNorm2d(c)
 		self.conv0, self.bn0 = conv1x1(c, c), nn.BatchNorm2d(c)
@@ -1136,6 +1137,7 @@ class SAN(nn.Module):
 		x = self.fc(x)
 		return x
 
-def get_san(opt):
-	model = SAN(opt.sa_type, Bottleneck, opt.layers, opt.kernels, opt.num_classes)
+@register_model
+def SAN_model(opt):
+	model = _SAN(opt.sa_type, Bottleneck, opt.layers, opt.kernels, opt.num_classes)
 	return model.cuda()

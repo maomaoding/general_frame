@@ -1,6 +1,6 @@
 import torch, cv2
 import numpy as np
-from base_trainer import BaseTrainer
+from .base_trainer import BaseTrainer
 from models.networks.efficientdet import BBoxTransform, ClipBoxes, postprocess
 from utils.registry import *
 

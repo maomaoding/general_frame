@@ -1,5 +1,5 @@
 model = dict(
-	arch = 'erfnet',
+	task = 'erfnet',
 	model_path = "",
 	num_classes = 8,
 	num_labels = 4,
@@ -31,5 +31,4 @@ train_cfg = dict(
 	optimizer={'name': 'Adam', 'weight_decay': 5e-5},
 	)
 
-task = "erfnetseg"
 visual = True

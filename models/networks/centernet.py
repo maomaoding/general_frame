@@ -12,6 +12,7 @@ from torch import nn
 import torch.utils.model_zoo as model_zoo
 
 import numpy as np
+from utils.registry import *
 
 BatchNorm = nn.BatchNorm2d
 
@@ -655,7 +656,8 @@ def dla169up(classes, pretrained_base=None, **kwargs):
     return model
 '''
 
-def get_dla(opt):
+@register_model
+def centernet_model(opt):
     model = DLASeg(opt.arch,
                    opt.heads,
                    export_onnx=opt.export_onnx,

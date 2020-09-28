@@ -1,4 +1,4 @@
-from base_recognizor import BaseRecognizor
+from .base_recognizor import BaseRecognizor
 import os,cv2,torch,time,json,shutil
 import numpy as np
 from utils.utils import voc_ap

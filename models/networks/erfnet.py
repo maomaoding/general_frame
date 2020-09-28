@@ -1,6 +1,7 @@
 import torch,time,os
 import torch.nn as nn
 import torch.nn.functional as F
+from utils.registry import *
 
 class DownsamplerBlock(nn.Module):
 	def __init__(self, ninput, noutput):
@@ -186,6 +187,7 @@ class Net(nn.Module):
 
 			return ret
 
-def get_erfnet(opt):
+@register_model
+def erfnet_model(opt):
 	net = Net(opt.num_classes, opt.num_labels, opt.export_onnx)
 	return net

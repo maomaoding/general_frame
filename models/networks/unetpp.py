@@ -4,6 +4,7 @@ from torch import nn
 import torch.nn.functional as F
 from .base_models.resnet50 import RESNET
 import os
+from utils.registry import *
 
 decoder_filters = [64, 128, 256, 512, 1024]
 class BN_CONV_BN(nn.Module):
@@ -224,7 +225,8 @@ class UNETPP(nn.Module):
 
 		return x1, x2'''
 
-def get_unetpp(opt):
+@register_model
+def unetpp_model(opt):
 	return UNETPP(opt.num_classes, opt.num_labels, opt.export_onnx)
 
 if __name__ == '__main__':

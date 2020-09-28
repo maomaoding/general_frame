@@ -1,16 +1,8 @@
-from .networks.dla import get_dla
-from .networks.unetpp import get_unetpp
-from .networks.erfnet import get_erfnet
-from .networks.efficientdet import get_efficientdet
-from .networks.san import get_san
-_model_factory = {
-	'dla34' : get_dla,
-	'unetpp' : get_unetpp,
-	'erfnet' : get_erfnet,
-	'efficientdet': get_efficientdet,
-	'san': get_san,
-}
-
-def create_model(opt):
-	model = _model_factory[opt.arch](opt)
-	return model
+from utils.registry import get_model
+import os,sys,importlib
+net_path = os.path.join(os.path.dirname(__file__), 'networks')
+for file in os.listdir(net_path):
+	if '.py' in file and 'base' not in file and '__init__' not in file:
+		file_abspath = os.path.join(net_path, file.split('.')[0])
+		rel_path = os.path.relpath(file_abspath, os.getcwd())
+		importlib.import_module(rel_path.replace('/', '.'))

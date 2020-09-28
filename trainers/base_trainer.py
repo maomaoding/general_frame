@@ -3,7 +3,7 @@ import datetime,tqdm
 from utils.data_parallel import DataParallel
 from utils.utils import AverageMeter
 from progress.bar import Bar
-from models import create_model
+from models import get_model
 from models.utils import load_model, init_weights
 from tensorboardX import SummaryWriter
 from utils.visualizer import Visualizer
@@ -15,7 +15,7 @@ class BaseTrainer:
 		self.vis = Visualizer(opt)
 		self.loss_stats, self.loss = self._get_losses(opt)
 
-		self.model = create_model(opt)
+		self.model = get_model(opt)
 
 		self.optimizer = self.gen_optimizer()
 

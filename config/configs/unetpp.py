@@ -4,7 +4,7 @@ visdom = dict(
 	)
 
 model = dict(
-	arch = 'unetpp',
+	task = 'unetpp',
 	model_path = "./checkpoints/model_lanebest7cls.pth",
 	num_classes = 8,
 	num_labels = 7,
@@ -39,6 +39,5 @@ train_cfg = dict(
 	optimizer={'name': 'Adam', 'weight_decay': 5e-5},
 	)
 
-task = 'unetppseg'
 visual = True
 show_results=True

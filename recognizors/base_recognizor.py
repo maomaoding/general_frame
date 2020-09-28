@@ -1,5 +1,5 @@
 import time,torch, os
-from models import create_model
+from models import get_model
 from models.utils import load_model
 from utils.visualizer import Visualizer
 import numpy as np
@@ -12,7 +12,7 @@ class BaseRecognizor(object):
 		  opt.device = torch.device('cpu')
 
 		print('Creating model...')
-		self.model = create_model(opt)
+		self.model = get_model(opt)
 		self.model = load_model(self.model, opt.model_path)
 		# self.model.load_state_dict(torch.load(opt.model_path), strict=False)
 		self.model = self.model.to(opt.device)

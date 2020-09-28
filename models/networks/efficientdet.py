@@ -6,6 +6,7 @@ from .base_models.efficientnet_utils import MemoryEfficientSwish, Swish,\
 											Conv2dStaticSamePadding, MaxPool2dStaticSamePadding
 from .base_models.efficientnet import EfficientNet
 from torchvision.ops.boxes import batched_nms
+from utils.registry import *
 
 def postprocess(x, anchors, regression, classification, regressBoxes, clipBoxes, threshold, iou_threshold):
     transformed_anchors = regressBoxes(anchors, regression)
@@ -533,6 +534,7 @@ class EfficientDetBackbone(nn.Module):
 
 		return features, regression, classification, anchors
 
-def get_efficientdet(opt):
+@register_model
+def efficientdet_model(opt):
 	return EfficientDetBackbone(num_classes=opt.num_classes, compound_coef=opt.compound_coef,
 								load_weights=opt.load_weights, ratios=opt.ratios, scales=opt.scales)
