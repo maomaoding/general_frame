@@ -8,6 +8,7 @@ from .task.centernet_task import CTDetDataset
 from .task.seg_task import SegmentDataset
 from .task.efficientdet_task import efficientDetDataset
 from .task.SAN_task import SANDataset
+from .task.detr_task import detrDataset
 
 _dataset_factory = {
 	'coco': COCO,
@@ -25,9 +26,10 @@ _task_factory = {
 	'erfnetseg': SegmentDataset,
 	'efficientdet': efficientDetDataset,
 	'SAN': SANDataset,
+	'detr': detrDataset,
 }
 
 def get_dataset(opt, split='train'):
-	class Dataset(_dataset_factory[opt.dataset], _task_factory[opt.task]):
+	class Dataset(_task_factory[opt.task], _dataset_factory[opt.dataset]):
 		pass
 	return Dataset(opt, split)

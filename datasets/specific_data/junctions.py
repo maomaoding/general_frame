@@ -4,48 +4,48 @@ import torch.utils.data as data
 from ..augment.transforms import *
 
 class Junctions(data.Dataset):
-	def get_ann(self, index):
+	def get_img_annot(self, index):
+		#get ann
 		label_path = self.label_list[index]
 		labels = []
 		for bb in open(label_path, 'r'):
 			xmin, ymin, xmax, ymax, classid = bb.rstrip().split()
 			label = [float(xmin), float(ymin), float(xmax), float(ymax), int(classid)]
 			labels.append(label)
-		return labels
+		#get img
+		img_path = self.img_list[index]
+		img = cv2.imread(img_path)
+		return img, np.array(labels)
 
-	def get_img_path(self, index):
-		return self.img_list[index]
-
-	def prepare_input(self, img_path, anns):
-		input_img = cv2.imread(img_path)
-		height, width = input_img.shape[0], input_img.shape[1]
+	def preprocess_augment(self, img, label):
+		height, width = img.shape[0], img.shape[1]
 		if self.opt.keep_res:
 			input_h = ((height - 1) | self.opt.pad) + 1  # 获取大于height并能被self.opt.pad整除的最小整数
 			input_w = ((width - 1) | self.opt.pad) + 1
 		else:
 			input_h = ((self.opt.input_h-1)|self.opt.pad) + 1
 			input_w = ((self.opt.input_w-1)|self.opt.pad) + 1
-		anns = np.array(anns)
-		for ann in anns:
-			ann[[0, 2]] = ann[[0, 2]] / input_img.shape[1] * input_w
-			ann[[1, 3]] = ann[[1, 3]] / input_img.shape[0] * input_h
-		input_img = cv2.resize(input_img, (input_w, input_h), interpolation=cv2.INTER_AREA)
+		label = np.array(label)
+		for ann in label:
+			ann[[0, 2]] = ann[[0, 2]] / img.shape[1] * input_w
+			ann[[1, 3]] = ann[[1, 3]] / img.shape[0] * input_h
+		img = cv2.resize(img, (input_w, input_h), interpolation=cv2.INTER_AREA)
 
-		#for data augmentation
 		for item in self.augment_list:
-			input_img, anns = item(input_img, anns, self.opt.class_name)
+			img, label = item(img, label, self.opt.class_name)
+		return img, label
 
-		return input_img, anns
+	def get_task_spec_input(self, *arg):
+		raise NotImplementedError
 
 	def __init__(self, opt, split='train'):
-		super(Junctions, self).__init__()
 		self.data_dir = os.path.join(opt.data_dir, opt.dataset)
 		self.trainval_root = os.path.join(self.data_dir, split)
 
 		self.opt = opt
 		self.split = split
 		if split == 'train':# RandomCropsub(0.5,0.1),RandomFlipsub(0.5),
-			self.augment_list = [RandomRotate90(0.5),
+			self.augment_list = [RandomRotate90(0.5), RandomFlipsub(0.5),
 								RandomGaussBlursub(0.3), RandomContrastBrightsub(0.3), RandomNoisesub(0.3),
 								Normalizesub(opt.mean, opt.std)]
 		else:
@@ -63,6 +63,12 @@ class Junctions(data.Dataset):
 
 	def __len__(self):
 		return self.num_samples
+
+	def __getitem__(self, index):
+		img, ann = self.get_img_annot(index)
+		img, ann = self.preprocess_augment(img, ann)
+		ret = self.get_task_spec_input(img, ann)
+		return ret
 
 class RandomFlipsub(RandomFlip):
 	def __init__(self, random_ratio):

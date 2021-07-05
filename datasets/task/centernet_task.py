@@ -1,5 +1,4 @@
 import math
-from .base import BaseTask
 import numpy as np
 
 def gaussian_radius(det_size, min_overlap=0.7):
@@ -119,8 +118,11 @@ def draw_msra_gaussian(heatmap, center, sigma):
 		g[g_y[0]:g_y[1], g_x[0]:g_x[1]])
 	return heatmap
 
-class CTDetDataset(BaseTask):
-	def get_data(self,img,anns):
+class CTDetDataset:
+	def __init__(self, *args):
+		super(CTDetDataset, self).__init__(*args)
+		
+	def get_task_spec_input(self,img,anns):
 		num_objs = min(len(anns), self.opt.max_objs)
 		height, width = img.shape[1], img.shape[2]#img :c h w
 

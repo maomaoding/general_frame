@@ -54,7 +54,7 @@ class Furnitures(data.Dataset):
 			self.class_to_idx = load_class_map(opt.class_map, self.root)
 		images, self.class_to_idx = find_images_and_targets(self.root, class_to_idx=self.class_to_idx)
 		if len(images) == 0:
-				raise RuntimeError(f'Found 0 images in subfolders of {root}. '
+				raise RuntimeError(f'Found 0 images in subfolders of {self.root}. '
 													 f'Supported image extensions are {", ".join(IMG_EXTENSIONS)}')
 		self.samples = images
 		self.imgs = self.samples # torchvision ImageFolder compat

@@ -66,7 +66,11 @@ class BaseTrainer:
 			data_time.update(time.time() - end)
 			for k in batch:
 				if k != 'gt':
-					batch[k] = batch[k].to(device=opt.device, non_blocking=True)
+					if isinstance(batch[k], list):
+						batch[k] = [{k: v.to(device=opt.device, non_blocking=True) 
+									if k != 'image_id' else v for k,v in t.items()} for t in batch[k]]
+					else:
+						batch[k] = batch[k].to(device=opt.device, non_blocking=True)
 			output, loss, loss_stats = self.model_with_loss(batch)
 			# loss = loss.mean()
 			if phase == 'train':

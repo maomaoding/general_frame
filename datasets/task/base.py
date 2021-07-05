@@ -1,11 +1,17 @@
+####################################
+#To be removed, doesn't need anymore
+#Keeped temporarily for other unchanged dataset
+####################################
+
 import torch.utils.data as data
 import cv2,os
 import numpy as np
 from datasets.augment import *
 
 class BaseTask(data.Dataset):
-	def __init__(self):
-		super(BaseTask, self).__init__()
+	def __init__(self, *args):
+		print('BaseTask')
+		super(BaseTask, self).__init__(*args)
 
 	def __getitem__(self, index):
 		# try:
